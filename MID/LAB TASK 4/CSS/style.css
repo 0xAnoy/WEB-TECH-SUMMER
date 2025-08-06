@@ -1,0 +1,53 @@
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background-color:#5ae1e9;
+    padding: 50px;
+}
+
+h1,h2,h3{
+    text-align: center;
+}
+label{
+    font-weight: bold;
+    margin:auto;
+
+}
+
+form{
+    width: 700px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+
+}
+
+input[type="text"],input[type="number"], input[type="insurance"], input[type="policy"], input[type="phone"], input[type="email"], input[type="password"], select{
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+input[type="submit"]{
+    background-color: #187fe7;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button {
+    margin-top: 20px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+  display: block;
+  margin-top: 5px;
+}
