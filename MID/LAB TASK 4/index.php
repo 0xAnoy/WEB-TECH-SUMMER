@@ -1,4 +1,4 @@
 <?php
-header("Location: CSS/form.php");
+header("Location: VIEW/form.php");
 exit();
 ?>
