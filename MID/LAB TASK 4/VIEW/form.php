@@ -2,8 +2,8 @@
 <html>
 <head>
     <title>AIUB Clinic</title>
-    <link rel="stylesheet" href="CSS/style.css">
-    <script src="JAVASCRIPT/validation.js"></script>
+    <link rel="stylesheet" href="../CSS/style.css">
+    <script src="../JAVASCRIPT/validation.js"></script>
 </head>
 
 <body>
