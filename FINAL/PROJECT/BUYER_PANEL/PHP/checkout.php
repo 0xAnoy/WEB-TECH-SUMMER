@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user = $_SESSION['user_id'];
 
-// fetch cart items
+// fetch cart
 $q = $conn->prepare("SELECT cart.id AS cart_id, products.id AS product_id, products.name, products.price, cart.quantity
                     FROM cart JOIN products ON cart.product_id = products.id
                     WHERE cart.user_id = ?");
