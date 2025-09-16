@@ -49,26 +49,32 @@ if ($ordStmt->execute()) {
 $ordStmt->close();
 
 // Attempt to load item names if order_items table exists
-$hasOrderItems = false;
+// Defensive: only attempt item names join if both tables exist
+$hasOrderItems = false; $hasProductsTable = false;
 $tblRes = $conn->query("SHOW TABLES LIKE 'order_items'");
 if ($tblRes && $tblRes->num_rows > 0) { $hasOrderItems = true; }
-if ($hasOrderItems && !empty($orders)) {
+$tblRes2 = $conn->query("SHOW TABLES LIKE 'products'");
+if ($tblRes2 && $tblRes2->num_rows > 0) { $hasProductsTable = true; }
+if ($hasOrderItems && $hasProductsTable && !empty($orders)) {
     $ids = array_map(function($o){ return (int)$o['id']; }, $orders);
-    // Build placeholders for prepared IN clause
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $types = str_repeat('i', count($ids));
     $sqlItems = "SELECT oi.order_id, p.name, oi.quantity FROM order_items oi JOIN products p ON oi.product_id=p.id WHERE oi.order_id IN ($placeholders)";
     $stmtItems = $conn->prepare($sqlItems);
-    $stmtItems->bind_param($types, ...$ids);
-    if ($stmtItems->execute()) {
-        $resItems = $stmtItems->get_result();
-        while ($ir = $resItems->fetch_assoc()) {
-            $oid = (int)$ir['order_id'];
-            if (!isset($orderItemsMap[$oid])) $orderItemsMap[$oid] = [];
-            $orderItemsMap[$oid][] = $ir['name'] . ( ($ir['quantity']>1)?' x'.$ir['quantity']:'' );
+    if ($stmtItems) {
+        $stmtItems->bind_param($types, ...$ids);
+        if ($stmtItems->execute()) {
+            $resItems = $stmtItems->get_result();
+            while ($ir = $resItems->fetch_assoc()) {
+                $oid = (int)$ir['order_id'];
+                if (!isset($orderItemsMap[$oid])) $orderItemsMap[$oid] = [];
+                $orderItemsMap[$oid][] = $ir['name'] . ( ($ir['quantity']>1)?' x'.$ir['quantity']:'' );
+            }
         }
+        $stmtItems->close();
     }
-    $stmtItems->close();
+} elseif ($hasOrderItems && !empty($orders) && !$hasProductsTable) {
+    echo "<p class='form-error'>Products table missing. Item names unavailable.</p>";
 }
 ?>
 

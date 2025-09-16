@@ -8,6 +8,21 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user = (int) $_SESSION['user_id'];
 
+// Guard: ensure required tables exist (products, cart)
+$hasProducts = false; $hasCart = false;
+$chk1 = $conn->query("SHOW TABLES LIKE 'products'");
+if ($chk1 && $chk1->num_rows > 0) { $hasProducts = true; }
+$chk2 = $conn->query("SHOW TABLES LIKE 'cart'");
+if ($chk2 && $chk2->num_rows > 0) { $hasCart = true; }
+if (!$hasProducts || !$hasCart) {
+  include 'main.php';
+  if (!$hasProducts) { echo "<p class='form-error'>Products table missing. Import schema first.</p>"; }
+  if (!$hasCart) { echo "<p class='form-error'>Cart table missing. Import schema first.</p>"; }
+  include 'footer.php';
+  echo '</main>'; echo '<script src="../js/script.js"></script>'; echo '</body></html>';
+  exit;
+}
+
 // Handle update/remove
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_id'])) {

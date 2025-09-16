@@ -6,6 +6,19 @@ include 'main.php';
 
 $add_message = '';
 
+// Guard: ensure products table exists to avoid fatal errors if DB not imported
+$hasProductsTable = false;
+$tblCheck = $conn->query("SHOW TABLES LIKE 'products'");
+if ($tblCheck && $tblCheck->num_rows > 0) { $hasProductsTable = true; }
+if (!$hasProductsTable) {
+  echo "<p class='form-error'>Products table missing. Please import the schema </p>";
+  include 'footer.php';
+  echo '</main>';
+  echo '<script src="../js/script.js"></script>';
+  echo '</body></html>';
+  exit;
+}
+
 if (
   $_SERVER['REQUEST_METHOD'] === 'POST'
   && isset($_POST['add_product_id'])

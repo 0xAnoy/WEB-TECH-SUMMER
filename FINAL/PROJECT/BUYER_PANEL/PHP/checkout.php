@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values['zip'] = $zip;
     $values['payment_method'] = $payment_method;
 
-    // from validation
+  // form validation
     $invalid = false;
     if (empty($full_name)) {
       echo "<p class='form-error'>Full name is required!</p>";
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $invalid = true;
     }
 
-  if (empty($errors) && !$invalid) {
+    if (empty($errors) && !$invalid) {
       $hasPaymentCol = false;
       $colRes = $conn->query("SHOW COLUMNS FROM orders LIKE 'payment_method'");
       if ($colRes && $colRes->num_rows > 0) { $hasPaymentCol = true; }
@@ -101,17 +101,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $addr = $values['street'];
         $ord->bind_param("idssssss", $user, $grand, $values['full_name'], $values['email'], $values['phone'], $addr, $values['city'], $values['zip']);
       }
-      if ($ord->execute()) {
+  if ($ord->execute()) {  
         $order_id = $ord->insert_id;
         // insert order items 
         $tblRes = $conn->query("SHOW TABLES LIKE 'order_items'");
-        if ($tblRes && $tblRes->num_rows > 0) {
-          foreach ($items as $it) {
+  if ($tblRes && $tblRes->num_rows > 0) { N
+          foreach ($items as $it) { 
             $ins = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?,?,?,?)");
             $ins->bind_param("iiid", $order_id, $it['product_id'], $it['quantity'], $it['price']);
             $ins->execute();
             $ins->close();
-          }
+          } 
         } else {
           $errors[] = 'Note: order_items table missing; items were not recorded separately.';
         }
@@ -139,10 +139,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Attempt to send receipt 
         $emailResult = send_order_receipt($SMTP_CONFIG, $values['email'], $values['full_name'] ?: 'Customer', $orderData);
-        if (!$emailResult['ok']) {
+  if (!$emailResult['ok']) {
           $_SESSION['email_failed'] = 1;
           $_SESSION['email_error'] = substr($emailResult['error'],0,200);
-        } else {
+  } else {  
           $_SESSION['email_failed'] = 0;
         }
 
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       } else {
         $errors[] = "Failed to create order: " . $conn->error;
       }
-    }
+    }                                  
   }
 }
 
@@ -249,6 +249,7 @@ include "main.php";
 </div>
 
 </main>
+<?php endif; ?> 
 
 <?php include 'footer.php'; ?>
 <script src="../js/script.js"></script>
