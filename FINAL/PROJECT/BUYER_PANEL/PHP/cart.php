@@ -95,10 +95,7 @@ include "main.php";
     </div>
   <?php endif; ?>
 </div>
-<!-- content ends; layout (header/footer) handled by main.php -->
-
 </main>
-
 <?php include 'footer.php'; ?>
 <script src="../js/script.js"></script>
 </body>

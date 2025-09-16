@@ -3,6 +3,7 @@
 require_once "config.php";
 require_once "email.php"; 
 session_start();
+ob_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -35,44 +36,58 @@ $values = [
   'payment_method' => 'cod'
 ];
 
-$message = '';
-
-$field_errors = [
-  'full_name' => '',
-  'email' => '',
-  'street' => ''
-];
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (empty($items)) {
     $errors[] = "Cart is empty.";
   } else {
-    // collect billing fields
-    $values['full_name'] = trim($_POST['full_name'] ?? '');
-    $values['email'] = trim($_POST['email'] ?? '');
-    $values['phone'] = trim($_POST['phone'] ?? '');
-    $values['street'] = trim($_POST['street'] ?? '');
-    $values['city'] = trim($_POST['city'] ?? '');
-  $values['zip'] = trim($_POST['zip'] ?? '');
-  $values['payment_method'] = $_POST['payment_method'] ?? 'cod';
 
-    // server-side validation 
-    if ($values['full_name'] === '') {
-      $field_errors['full_name'] = 'Full name is required.';
+    $full_name = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $street = trim($_POST['street'] ?? '');
+    $city = trim($_POST['city'] ?? '');
+    $zip = trim($_POST['zip'] ?? '');
+    $payment_method = $_POST['payment_method'] ?? 'cod';
+
+    $values['full_name'] = $full_name;
+    $values['email'] = $email;
+    $values['phone'] = $phone;
+    $values['street'] = $street;
+    $values['city'] = $city;
+    $values['zip'] = $zip;
+    $values['payment_method'] = $payment_method;
+
+    // from validation
+    $invalid = false;
+    if (empty($full_name)) {
+      echo "<p class='form-error'>Full name is required!</p>";
+      $invalid = true;
     }
-    // simple email validation
-    if ($values['email'] === '' || strpos($values['email'], '@') === false) {
-      $field_errors['email'] = 'A valid email address is required.';
+    if (empty($email)) {
+      echo "<p class='form-error'>Email is required!</p>";
+      $invalid = true;
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      echo "<p class='form-error'>Email format is invalid!</p>";
+      $invalid = true;
     }
-    if ($values['street'] === '') {
-      $field_errors['street'] = 'Street address is required.';
+    if (empty($street)) {
+      echo "<p class='form-error'>Street address is required!</p>";
+      $invalid = true;
+    }
+    if (empty($phone)) {
+      echo "<p class='form-error'>Phone is required!</p>";
+      $invalid = true;
+    }
+    if (empty($city)) {
+      echo "<p class='form-error'>City is required!</p>";
+      $invalid = true;
+    }
+    if (empty($zip)) {
+      echo "<p class='form-error'>ZIP code is required!</p>";
+      $invalid = true;
     }
 
-
-  $has_field_errors = false;
-  foreach ($field_errors as $fe) { if (!empty($fe)) { $has_field_errors = true; break; } }
-
-  if (empty($errors) && !$has_field_errors) {
+  if (empty($errors) && !$invalid) {
       $hasPaymentCol = false;
       $colRes = $conn->query("SHOW COLUMNS FROM orders LIKE 'payment_method'");
       if ($colRes && $colRes->num_rows > 0) { $hasPaymentCol = true; }
@@ -88,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       if ($ord->execute()) {
         $order_id = $ord->insert_id;
-        // insert order items if table exists
+        // insert order items 
         $tblRes = $conn->query("SHOW TABLES LIKE 'order_items'");
         if ($tblRes && $tblRes->num_rows > 0) {
           foreach ($items as $it) {
@@ -125,7 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Attempt to send receipt 
         $emailResult = send_order_receipt($SMTP_CONFIG, $values['email'], $values['full_name'] ?: 'Customer', $orderData);
         if (!$emailResult['ok']) {
-          // store a flash indicator
           $_SESSION['email_failed'] = 1;
           $_SESSION['email_error'] = substr($emailResult['error'],0,200);
         } else {
@@ -152,9 +166,6 @@ include "main.php";
 
 <div class="card-centered">
   <h2 class="heading-page">Checkout</h2>
-  <?php if ($message): ?>
-  <div class="message-error"><?=htmlspecialchars($message)?></div>
-  <?php endif; ?>
   <?php if (!empty($errors)): ?>
     <div class="message-error">
       <ul>
@@ -191,20 +202,12 @@ include "main.php";
           <div>
             <label class="field-label">Full Name</label>
             <input name="full_name" value="<?=htmlspecialchars($values['full_name'] ?? '')?>" class="form-input" />
-            <?php if (!empty($field_errors['full_name'])): ?>
-              <div class="field-error space-top-sm error-text-sm">
-                <?=htmlspecialchars($field_errors['full_name'])?>
-              </div>
-            <?php endif; ?>
+
           </div>
           <div>
             <label class="field-label">Email Address</label>
             <input name="email" type="email" value="<?=htmlspecialchars($values['email'] ?? '')?>" class="form-input" />
-            <?php if (!empty($field_errors['email'])): ?>
-              <div class="field-error space-top-sm error-text-sm">
-                <?=htmlspecialchars($field_errors['email'])?>
-              </div>
-            <?php endif; ?>
+
           </div>
           <div>
             <label class="field-label">Phone Number</label>
@@ -216,11 +219,6 @@ include "main.php";
           <div>
             <label class="field-label">Street Address</label>
             <input name="street" value="<?=htmlspecialchars($values['street'] ?? '')?>" class="form-input" />
-            <?php if (!empty($field_errors['street'])): ?>
-              <div class="field-error space-top-sm error-text-sm">
-                <?=htmlspecialchars($field_errors['street'])?>
-              </div>
-            <?php endif; ?>
           </div>
           <div class="responsive-mini-grid">
             <div>
@@ -248,7 +246,6 @@ include "main.php";
         </div>
       </form>
     </div>
-  <?php endif; ?>
 </div>
 
 </main>
