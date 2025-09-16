@@ -62,6 +62,33 @@ if (!function_exists('send_order_receipt')) {
     }
 }
 
+// Simple OTP email sender for login verification
+if (!function_exists('send_login_otp')) {
+    function send_login_otp(array $smtp, string $toEmail, string $toName, string $otp): array {
+        $subject = 'Your Login OTP Code';
+        $date = date('r');
+        $body = '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;font-size:14px;color:#111;">'
+            .'<h2 style="margin:0 0 12px;">Login Verification</h2>'
+            .'<p>Your One-Time Password (OTP) is:</p>'
+            .'<div style="font-size:24px;letter-spacing:4px;font-weight:bold;background:#f5f5f5;padding:12px 16px;display:inline-block;border:1px solid #ddd;">'
+            . htmlspecialchars($otp) . '</div>'
+            .'<p style="margin-top:16px;">It expires in 5 minutes. If you did not request this, you can ignore the email.</p>'
+            .'<p style="margin-top:24px;color:#555;">This is an automated email; do not reply.</p>'
+            .'</body></html>';
+
+        $headers = [
+            'Date: ' . $date,
+            'From: ' . ($smtp['from_name'] ?? 'Store') . ' <' . $smtp['from_email'] . '>',
+            'To: ' . $toName . ' <' . $toEmail . '>',
+            'Subject: ' . $subject,
+            'MIME-Version: 1.0',
+            'Content-Type: text/html; charset=UTF-8'
+        ];
+        $data = implode("\r\n", $headers) . "\r\n\r\n" . $body . "\r\n";
+        return smtp_raw_send($smtp, $toEmail, $data);
+    }
+}
+
 if (!function_exists('smtp_raw_send')) {
 
     function smtp_raw_send(array $smtp, string $to, string $data): array {

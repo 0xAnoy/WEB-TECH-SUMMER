@@ -365,3 +365,6 @@ footer .footer-toplink { position: absolute; right: 16px; top: 50%; transform: t
 .product-add-form { margin-top: 24px; display: flex; align-items: center; gap: 16px; }
 .product-modal-wide { max-width: 896px; }
 
+/* OTP specific */
+.otp-error { color: var(--color-danger); font-weight: 600; margin: 8px 0; }
+
