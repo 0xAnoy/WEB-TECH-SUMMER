@@ -12,7 +12,7 @@ if ($productId <= 0) {
     exit;
 }
 
-$stmt = $conn->prepare('SELECT id, name, description, price, image FROM products WHERE id = ?');
+$stmt = $conn->prepare('SELECT id, name, description, price, stock, image FROM products WHERE id = ?');
 $stmt->bind_param('i', $productId);
 $stmt->execute();
 $res = $stmt->get_result();
@@ -88,16 +88,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product_id'])) {
     <div>
   <h1 class="heading-title"><?=htmlspecialchars($product['name'])?></h1>
   <div class="product-price-accent">$<?=number_format($product['price'],2)?></div>
+  <p><strong>Stock:</strong> <?= isset($product['stock']) ? ( (int)$product['stock']>0 ? intval($product['stock']) : '<span style="color:red;">Out of Stock</span>' ) : 'N/A' ?></p>
   <p class="product-description"><?=nl2br(htmlspecialchars($product['description']))?></p>
 
       <?php if (!empty($add_error)): ?>
         <div class="product-error"><span><?=htmlspecialchars($add_error)?></span></div>
       <?php endif; ?>
-  <form method="post" class="product-add-form" id="addToCartForm">
-        <input type="hidden" name="add_product_id" value="<?=intval($product['id'])?>">
-        <label>Qty <input type="number" name="quantity" value="1" min="1" class="qty-input"></label>
-        <button class="btn btn-primary" id="addToCartBtn" disabled>Add to Cart</button>
-      </form>
+  <?php $pStock = isset($product['stock'])?(int)$product['stock']:0; ?>
+  <?php if($pStock>0): ?>
+    <form method="post" class="product-add-form" id="addToCartForm">
+      <input type="hidden" name="add_product_id" value="<?=intval($product['id'])?>">
+      <label>Qty <input type="number" name="quantity" value="1" min="1" max="<?=$pStock?>" class="qty-input"></label>
+      <button class="btn btn-primary" id="addToCartBtn">Add to Cart</button>
+    </form>
+  <?php else: ?>
+    <div class="out-of-stock-label" style="margin-top:10px;display:inline-block;">Out of Stock</div>
+  <?php endif; ?>
 
       <!-- Disclaimer modal -->
       <div id="disclaimerModal" class="modal-overlay">

@@ -11,6 +11,9 @@ if (session_status() == PHP_SESSION_NONE) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>eShop</title>
   <link rel="stylesheet" href="../css/styles.css">
+<style>
+.out-of-stock-label {background:#ffc107;color:#432b00;font-size:0.8rem;padding:6px 10px;border-radius:4px;font-weight:600;display:inline-block;}
+</style>
 </head>
 <body class="site-body">
 

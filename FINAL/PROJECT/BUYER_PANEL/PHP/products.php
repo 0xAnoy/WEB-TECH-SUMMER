@@ -100,10 +100,10 @@ if ($total > 0) {
 
 $list = [];
 if ($category) {
-  $q = $conn->prepare('SELECT id, name, description, price, image, category FROM products WHERE category=? ORDER BY id DESC LIMIT ? OFFSET ?');
+  $q = $conn->prepare('SELECT id, name, description, price, stock, image, category FROM products WHERE category=? ORDER BY id DESC LIMIT ? OFFSET ?');
   $q->bind_param('sii', $category, $perPage, $offset);
 } else {
-  $q = $conn->prepare('SELECT id, name, description, price, image, category FROM products ORDER BY id DESC LIMIT ? OFFSET ?');
+  $q = $conn->prepare('SELECT id, name, description, price, stock, image, category FROM products ORDER BY id DESC LIMIT ? OFFSET ?');
   $q->bind_param('ii', $perPage, $offset);
 }
 $q->execute();
@@ -124,6 +124,7 @@ foreach ($list as $row) {
   $pid = (int) $row['id'];
   $img = htmlspecialchars($row['image'] ?: 'assets/placeholder.png');
   $name = htmlspecialchars($row['name']);
+  $stock = isset($row['stock']) ? (int)$row['stock'] : 0;
   $desc = htmlspecialchars(substr($row['description'], 0, 120)) . '...';
   $price = number_format($row['price'], 2);
 ?>
@@ -137,11 +138,15 @@ foreach ($list as $row) {
     <p class="product-card-price space-top-sm"><?=$desc?></p>
     <div class="space-top-md row-between gap-xs">
       <div class="product-card-price price-sm">$<?=$price?></div>
-      <form method="post" class="row-inline gap-xs">
-        <input type="hidden" name="add_product_id" value="<?=$pid?>">
-        <input type="number" name="quantity" value="1" min="1" class="qty-input">
-        <button class="btn btn-primary btn-sm">Add</button>
-      </form>
+      <?php if($stock > 0): ?>
+        <form method="post" class="row-inline gap-xs">
+          <input type="hidden" name="add_product_id" value="<?=$pid?>">
+          <input type="number" name="quantity" value="1" min="1" max="<?=$stock?>" class="qty-input">
+          <button class="btn btn-primary btn-sm">Add</button>
+        </form>
+      <?php else: ?>
+        <span class="out-of-stock-label">Out of Stock</span>
+      <?php endif; ?>
     </div>
   </div>
 <?php

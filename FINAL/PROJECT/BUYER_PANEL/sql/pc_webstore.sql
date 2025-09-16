@@ -14,6 +14,7 @@ CREATE TABLE products (
     name VARCHAR(100),
     description TEXT,
     price DECIMAL(10,2),
+    stock INT NOT NULL DEFAULT 10, -- stock control added (default 10)
     image VARCHAR(255),
     category VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
