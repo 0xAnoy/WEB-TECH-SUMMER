@@ -11,6 +11,7 @@ if (!empty($_SESSION['user_id'])) {
 }
 
 $otpStage = false; // flag to show OTP form
+$resetMode = isset($_GET['reset']); // UI toggle via query
 $now = time();
 
 // Handle resend request (GET) if OTP pending
@@ -72,18 +73,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   } else {
     // Stage 1: Credentials submission
+    $mode = $_POST['mode'] ?? 'login';
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $remember = !empty($_POST['remember']);
     $invalid = false;
+
+    $isReset = ($mode === 'reset');
+    $newPassword = $isReset ? ($_POST['new_password'] ?? '') : '';
+    $confirmPassword = $isReset ? ($_POST['confirm_password'] ?? '') : '';
 
     if (empty($email)) {
       echo "<p class='form-error'>Email is required!</p>";
       $invalid = true;
     }
     if (empty($password)) {
-      echo "<p class='form-error'>Password is required!</p>";
+      echo "<p class='form-error'>" . ($isReset ? 'Current password is required!' : 'Password is required!') . "</p>";
       $invalid = true;
+    }
+    if ($isReset) {
+      if (empty($newPassword)) {
+        echo "<p class='form-error'>New password is required!</p>"; $invalid = true;
+      }
+      if (empty($confirmPassword)) {
+        echo "<p class='form-error'>Confirm password is required!</p>"; $invalid = true;
+      }
+      if (!$invalid && $newPassword !== $confirmPassword) {
+        echo "<p class='form-error'>New password and confirm do not match!</p>"; $invalid = true;
+      }
+      if (!$invalid && $newPassword !== '' && strlen($newPassword) < 6) {
+        echo "<p class='form-error'>New password must be at least 6 characters.</p>"; $invalid = true;
+      }
+      if (!$invalid && $newPassword === $password && $newPassword !== '') {
+        echo "<p class='form-error'>New password cannot be same as current password.</p>"; $invalid = true;
+      }
     }
     if (!$invalid) {
       $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email = ?");
@@ -94,7 +117,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_result($id, $name, $hash);
         $stmt->fetch();
         if (password_verify($password, $hash)) {
-          // Build pending login and send OTP
+          // If reset mode, update password first
+          if ($isReset && !$invalid) {
+            $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+            $up = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $up->bind_param("si", $newHash, $id);
+            if ($up->execute()) {
+              echo "<p class='text-green-600 mb-2'>Password updated. Verify with OTP.</p>";
+            } else {
+              echo "<p class='form-error'>Failed to update password.</p>"; $invalid = true;
+            }
+            $up->close();
+          }
+          if (!$invalid) {
+            // Build pending login and send OTP (same flow as normal login)
           $otp = random_int(100000, 999999);
           $_SESSION['pending_login'] = [
             'user_id' => $id,
@@ -110,8 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<p class='form-error'>Failed to send OTP: " . htmlspecialchars(substr($res['error'],0,120)) . "</p>";
             unset($_SESSION['pending_login']);
           } else {
-            echo "<p class='text-green-600 mb-2'>OTP sent to your email. Enter it below.</p>";
-            $otpStage = true;
+              echo "<p class='text-green-600 mb-2'>OTP sent to your email. Enter it below.</p>";
+              $otpStage = true;
+            }
           }
         } else {
           echo "<p class='form-error'>Invalid credentials.</p>";
@@ -146,15 +183,32 @@ include "main.php";
     </form>
   <?php else: ?>
     <!-- Stage 1 credentials form -->
-    <form method="post" autocomplete="off">
-      <input name="email" placeholder="Email" type="email" class="form-input" value="<?= isset($_COOKIE['remember_email']) ? htmlspecialchars($_COOKIE['remember_email']) : '' ?>" autofocus>
-      <input name="password" placeholder="Password" type="password" class="form-input">
-      <label class="remember-option">
-        <input type="checkbox" name="remember" value="1" class="remember-checkbox"> Remember me
-      </label>
-      <div class="form-actions"><button class="btn btn-primary btn-block">Login</button></div>
-    </form>
-    <p class="mt-3 text-sm">Don't have an account? <a href="register.php" class="text-blue-600">Register</a></p>
+    <?php if (!$resetMode): ?>
+      <form method="post" autocomplete="off">
+        <input type="hidden" name="mode" value="login">
+        <input name="email" placeholder="Email" type="email" class="form-input" value="<?= isset($_COOKIE['remember_email']) ? htmlspecialchars($_COOKIE['remember_email']) : '' ?>" autofocus>
+        <input name="password" placeholder="Password" type="password" class="form-input">
+        <label class="remember-option">
+          <input type="checkbox" name="remember" value="1" class="remember-checkbox"> Remember me
+        </label>
+        <div class="form-actions"><button class="btn btn-primary btn-block">Login</button></div>
+      </form>
+      <p class="mt-3 text-sm"><a href="login.php?reset=1" class="text-blue-600">Reset password</a></p>
+      <p class="mt-3 text-sm">Don't have an account? <a href="register.php" class="text-blue-600">Register</a></p>
+    <?php else: ?>
+      <form method="post" autocomplete="off">
+        <input type="hidden" name="mode" value="reset">
+        <input name="email" placeholder="Email" type="email" class="form-input" value="<?= isset($_COOKIE['remember_email']) ? htmlspecialchars($_COOKIE['remember_email']) : '' ?>" autofocus>
+        <input name="password" placeholder="Current Password" type="password" class="form-input">
+        <input name="new_password" placeholder="New Password" type="password" class="form-input">
+        <input name="confirm_password" placeholder="Confirm New Password" type="password" class="form-input">
+        <label class="remember-option">
+          <input type="checkbox" name="remember" value="1" class="remember-checkbox"> Remember me
+        </label>
+        <div class="form-actions"><button class="btn btn-primary btn-block">Update & Verify</button></div>
+      </form>
+      <p class="mt-3 text-sm"><a href="login.php" class="text-blue-600">Back to login</a></p>
+    <?php endif; ?>
   <?php endif; ?>
 </div>
 

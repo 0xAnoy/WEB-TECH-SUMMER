@@ -89,6 +89,33 @@ if (!function_exists('send_login_otp')) {
     }
 }
 
+// Password reset email sender
+if (!function_exists('send_password_reset_email')) {
+    function send_password_reset_email(array $smtp, string $toEmail, string $toName, string $resetLink, int $minutesValid = 30): array {
+        $subject = 'Password Reset Request';
+        $date = date('r');
+        $body = '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;font-size:14px;color:#111;">'
+            .'<h2 style="margin:0 0 12px;">Reset Your Password</h2>'
+            .'<p>We received a request to reset the password for your account. Click the button below to set a new password.</p>'
+            .'<p style="margin:16px 0;"><a href="'.htmlspecialchars($resetLink).'" style="background:#2563eb;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">Reset Password</a></p>'
+            .'<p>If the button does not work, copy and paste this URL into your browser:</p>'
+            .'<p style="word-break:break-all;color:#1f2937;">'.htmlspecialchars($resetLink).'</p>'
+            .'<p>This link will expire in '.intval($minutesValid).' minutes or after it is used.</p>'
+            .'<p style="margin-top:24px;color:#555;">If you did not request this, you can safely ignore this email.</p>'
+            .'</body></html>';
+        $headers = [
+            'Date: ' . $date,
+            'From: ' . ($smtp['from_name'] ?? 'Store') . ' <' . $smtp['from_email'] . '>',
+            'To: ' . $toName . ' <' . $toEmail . '>',
+            'Subject: ' . $subject,
+            'MIME-Version: 1.0',
+            'Content-Type: text/html; charset=UTF-8'
+        ];
+        $data = implode("\r\n", $headers) . "\r\n\r\n" . $body . "\r\n";
+        return smtp_raw_send($smtp, $toEmail, $data);
+    }
+}
+
 if (!function_exists('smtp_raw_send')) {
 
     function smtp_raw_send(array $smtp, string $to, string $data): array {
