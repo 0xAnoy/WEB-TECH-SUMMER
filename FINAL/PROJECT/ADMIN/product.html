@@ -1,0 +1,37 @@
+<!-- Product Management -->
+<section id="product-management">
+  <h2>Product Management</h2>
+
+  <!-- Search Products -->
+  <form>
+    <input type="text" placeholder="Search product" />
+    <select>
+      <option>All Categories</option>
+      <option>Electronics</option>
+      <option>Clothing</option>
+    </select>
+    <button type="submit">Search</button>
+  </form>
+
+  <!-- Product List -->
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>SKU</th><th>Name</th><th>Price</th><th>Stock</th><th>Actions</th>
+    </tr>
+    <tr>
+      <td>P001</td><td>Smartphone</td><td>$500</td><td>50</td>
+      <td><button>Edit</button><button>Delete</button></td>
+    </tr>
+  </table>
+
+  <!-- Add Product -->
+  <h3>Add Product</h3>
+  <form>
+    <input type="text" placeholder="Product Name" required />
+    <input type="text" placeholder="SKU" required />
+    <input type="number" placeholder="Price" required />
+    <input type="number" placeholder="Stock Quantity" required />
+    <textarea placeholder="Description"></textarea>
+    <button type="submit">Save Product</button>
+  </form>
+</section>

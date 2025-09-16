@@ -1,0 +1,29 @@
+<!-- Discounts -->
+<section id="discounts">
+  <h2>Discounts & Coupons</h2>
+
+  <!-- Coupon List -->
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>Code</th><th>Type</th><th>Value</th><th>Active</th><th>Actions</th>
+    </tr>
+    <tr>
+      <td>WELCOME10</td><td>Percentage</td><td>10%</td><td>Yes</td>
+      <td><button>Edit</button><button>Disable</button></td>
+    </tr>
+  </table>
+
+  <!-- Add Coupon -->
+  <h3>Create Coupon</h3>
+  <form>
+    <input type="text" placeholder="Coupon Code" required />
+    <select>
+      <option>Percentage</option>
+      <option>Fixed Amount</option>
+      <option>Free Shipping</option>
+    </select>
+    <input type="number" placeholder="Value" required />
+    <input type="date" />
+    <button type="submit">Save Coupon</button>
+  </form>
+</section>

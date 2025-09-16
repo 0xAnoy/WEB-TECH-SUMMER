@@ -1,0 +1,27 @@
+<!-- Order Management -->
+<section id="order-management">
+  <h2>Order Management</h2>
+
+  <!-- Filter Orders -->
+  <form>
+    <select>
+      <option>All Orders</option>
+      <option>Pending</option>
+      <option>Shipped</option>
+      <option>Delivered</option>
+      <option>Cancelled</option>
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+
+  <!-- Order List -->
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th>
+    </tr>
+    <tr>
+      <td>1001</td><td>Jane Smith</td><td>$250</td><td>Shipped</td><td>2025-09-10</td>
+      <td><button>View</button><button>Invoice</button></td>
+    </tr>
+  </table>
+</section>
