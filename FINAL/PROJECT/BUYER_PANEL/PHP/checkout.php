@@ -101,31 +101,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $addr = $values['street'];
         $ord->bind_param("idssssss", $user, $grand, $values['full_name'], $values['email'], $values['phone'], $addr, $values['city'], $values['zip']);
       }
-  if ($ord->execute()) {  
+
+      if ($ord->execute()) {  // order created
         $order_id = $ord->insert_id;
-        // insert order items 
+
+        // insert order items
         $tblRes = $conn->query("SHOW TABLES LIKE 'order_items'");
-  if ($tblRes && $tblRes->num_rows > 0) { N
-          foreach ($items as $it) { 
+        if ($tblRes && $tblRes->num_rows > 0) {
+          foreach ($items as $it) {
             $ins = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?,?,?,?)");
             $ins->bind_param("iiid", $order_id, $it['product_id'], $it['quantity'], $it['price']);
             $ins->execute();
             $ins->close();
-          } 
+          }
         } else {
           $errors[] = 'Note: order_items table missing; items were not recorded separately.';
         }
+
         // Prepare order data for email
         $orderData = [
           'id' => $order_id,
           'total' => $grand,
           'items' => array_map(function($it){
-              return [
-                'name' => $it['name'],
-                'price' => $it['price'],
-                'quantity' => $it['quantity']
-              ];
-            }, $items),
+            return [
+              'name' => $it['name'],
+              'price' => $it['price'],
+              'quantity' => $it['quantity']
+            ];
+          }, $items),
           'billing' => [
             'full_name' => $values['full_name'],
             'email' => $values['email'],
@@ -137,12 +140,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           'payment_method' => $values['payment_method']
         ];
 
-        // Attempt to send receipt 
+        // Attempt to send receipt
         $emailResult = send_order_receipt($SMTP_CONFIG, $values['email'], $values['full_name'] ?: 'Customer', $orderData);
-  if (!$emailResult['ok']) {
+        if (!$emailResult['ok']) {
           $_SESSION['email_failed'] = 1;
           $_SESSION['email_error'] = substr($emailResult['error'],0,200);
-  } else {  
+        } else {
           $_SESSION['email_failed'] = 0;
         }
 
@@ -153,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         header("Location: order_success.php?order_id=" . intval($order_id));
         exit;
-      } else {
+      } else { // order insert failed
         $errors[] = "Failed to create order: " . $conn->error;
       }
     }                                  
