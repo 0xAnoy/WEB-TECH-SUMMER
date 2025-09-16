@@ -113,22 +113,25 @@ foreach ($list as $row) {
   $name = htmlspecialchars($row['name']);
   $desc = htmlspecialchars(substr($row['description'], 0, 120)) . '...';
   $price = number_format($row['price'], 2);
-
-  echo '<div class="card card-compact product-card">';
-  echo '<a href="product.php?id=' . $pid . '">';
-  echo '<img src="' . $img . '" alt="" class="img-card-md">';
-  echo '</a>';
-  echo '<h3 class="space-top-md"><a href="product.php?id=' . $pid . '" class="product-card-title">' . $name . '</a></h3>';
-  echo '<p class="product-card-price space-top-sm">' . $desc . '</p>';
-  echo '<div class="space-top-md row-between gap-xs">';
-  echo '<div class="product-card-price price-sm">$' . $price . '</div>';
-  echo '<form method="post" class="row-inline gap-xs">';
-  echo '<input type="hidden" name="add_product_id" value="' . $pid . '">';
-  echo '<input type="number" name="quantity" value="1" min="1" class="qty-input">';
-  echo '<button class="btn btn-primary btn-sm">Add</button>';
-  echo '</form>';
-  echo '</div>';
-  echo '</div>';
+?>
+  <div class="card card-compact product-card">
+    <a href="product.php?id=<?=$pid?>">
+      <img src="<?=$img?>" alt="" class="img-card-md">
+    </a>
+    <h3 class="space-top-md">
+      <a href="product.php?id=<?=$pid?>" class="product-card-title"><?=$name?></a>
+    </h3>
+    <p class="product-card-price space-top-sm"><?=$desc?></p>
+    <div class="space-top-md row-between gap-xs">
+      <div class="product-card-price price-sm">$<?=$price?></div>
+      <form method="post" class="row-inline gap-xs">
+        <input type="hidden" name="add_product_id" value="<?=$pid?>">
+        <input type="number" name="quantity" value="1" min="1" class="qty-input">
+        <button class="btn btn-primary btn-sm">Add</button>
+      </form>
+    </div>
+  </div>
+<?php
 }
 
 echo '</div>';
